@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Loader2 } from "lucide-react";
-import { createExpense } from "@/lib/expenses.functions";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { Camera, Loader2, Pencil } from "lucide-react";
+import { createExpense, updateExpense, getExpense } from "@/lib/expenses.functions";
 import { uploadAndParseReceipt } from "@/lib/receipts.functions";
 import { CATEGORIES, type Category, formatMoney } from "@/lib/categories";
 import { usePerson, PEOPLE, personColor, type PersonId } from "@/lib/person";
@@ -12,13 +12,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const searchSchema = z.object({
+  id: z.string().uuid().optional(),
+});
 
 export const Route = createFileRoute("/add")({
   component: AddExpense,
+  validateSearch: searchSchema,
   head: () => ({ meta: [{ title: "Add expense — Household Budget" }] }),
 });
 
 function AddExpense() {
+  const search = Route.useSearch();
+  const editingId = search.id;
+  const isEditing = Boolean(editingId);
+
   const { current } = usePerson();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -32,9 +42,42 @@ function AddExpense() {
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
 
+  const existing = useQuery({
+    queryKey: ["expense", editingId],
+    queryFn: () => getExpense({ data: { id: editingId! } }),
+    enabled: isEditing,
+  });
+
+  useEffect(() => {
+    if (existing.data) {
+      setAmount(String(existing.data.amount));
+      setCategory(existing.data.category as Category);
+      setSpentOn(existing.data.spent_on);
+      setDescription(existing.data.description);
+      setPerson(existing.data.person_id);
+      if (existing.data.receipt_id) {
+        setReceiptId(existing.data.receipt_id);
+        // no preview since we don't have a public URL handy; leave blank
+      }
+    }
+  }, [existing.data]);
+
   const save = useMutation({
-    mutationFn: () =>
-      createExpense({
+    mutationFn: () => {
+      if (isEditing) {
+        return updateExpense({
+          data: {
+            id: editingId!,
+            amount: Number(amount),
+            category,
+            spent_on: spentOn,
+            description,
+            person_id: person,
+            receipt_id: receiptId,
+          },
+        });
+      }
+      return createExpense({
         data: {
           amount: Number(amount),
           category,
@@ -43,10 +86,11 @@ function AddExpense() {
           person_id: person,
           receipt_id: receiptId,
         },
-      }),
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries();
-      toast.success("Expense added");
+      toast.success(isEditing ? "Expense updated" : "Expense added");
       nav({ to: "/" });
     },
     onError: (e) => toast.error((e as Error).message),
@@ -78,7 +122,14 @@ function AddExpense() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Add expense</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{isEditing ? "Edit expense" : "Add expense"}</h2>
+        {isEditing && (
+          <Link to="/" className="text-xs text-muted-foreground hover:text-foreground underline">
+            Cancel
+          </Link>
+        )}
+      </div>
 
       {/* Receipt scan */}
       <Card className="p-4">
@@ -201,7 +252,7 @@ function AddExpense() {
           disabled={!amount || Number(amount) <= 0 || save.isPending}
           onClick={() => save.mutate()}
         >
-          {save.isPending ? "Saving..." : "Save expense"}
+          {save.isPending ? "Saving..." : isEditing ? "Update expense" : "Save expense"}
         </Button>
       </Card>
     </div>

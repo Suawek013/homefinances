@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Pencil } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { listExpenses, getMonthlyStats, deleteExpense } from "@/lib/expenses.functions";
 import { getSettings, updateBudget } from "@/lib/settings.functions";
@@ -256,12 +256,21 @@ function Dashboard() {
               </div>
               <div className="text-right">
                 <div className="font-semibold">{formatMoney(Number(e.amount))}</div>
-                <button
-                  onClick={() => delMut.mutate(e.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center justify-end gap-1.5">
+                  <Link
+                    to="/add"
+                    search={{ id: e.id }}
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Link>
+                  <button
+                    onClick={() => delMut.mutate(e.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </Card>
           );
