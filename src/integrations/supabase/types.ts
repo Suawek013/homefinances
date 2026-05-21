@@ -14,7 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string
+          id: string
+          person_id: string
+          receipt_id: string | null
+          recurring_id: string | null
+          spent_on: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description?: string
+          id?: string
+          person_id: string
+          receipt_id?: string | null
+          recurring_id?: string | null
+          spent_on?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          person_id?: string
+          receipt_id?: string | null
+          recurring_id?: string | null
+          spent_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_recurring_id_fkey"
+            columns: ["recurring_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      people: {
+        Row: {
+          color: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          color: string
+          display_name: string
+          id: string
+        }
+        Update: {
+          color?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      receipts: {
+        Row: {
+          created_at: string
+          extracted_total: number | null
+          id: string
+          person_id: string
+          raw_ocr_text: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          extracted_total?: number | null
+          id?: string
+          person_id: string
+          raw_ocr_text?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          extracted_total?: number | null
+          id?: string
+          person_id?: string
+          raw_ocr_text?: string | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_expenses: {
+        Row: {
+          active: boolean
+          amount: number
+          category: string
+          created_at: string
+          day_of_month: number
+          id: string
+          name: string
+          person_id: string
+        }
+        Insert: {
+          active?: boolean
+          amount: number
+          category: string
+          created_at?: string
+          day_of_month: number
+          id?: string
+          name: string
+          person_id: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          category?: string
+          created_at?: string
+          day_of_month?: number
+          id?: string
+          name?: string
+          person_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expenses_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_instances: {
+        Row: {
+          created_at: string
+          expense_id: string | null
+          id: string
+          recurring_id: string
+          year_month: string
+        }
+        Insert: {
+          created_at?: string
+          expense_id?: string | null
+          id?: string
+          recurring_id: string
+          year_month: string
+        }
+        Update: {
+          created_at?: string
+          expense_id?: string | null
+          id?: string
+          recurring_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_instances_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_instances_recurring_id_fkey"
+            columns: ["recurring_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      settings: {
+        Row: {
+          id: number
+          monthly_budget: number | null
+        }
+        Insert: {
+          id?: number
+          monthly_budget?: number | null
+        }
+        Update: {
+          id?: number
+          monthly_budget?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
