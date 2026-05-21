@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RecurringRouteImport } from './routes/recurring'
+import { Route as ReceiptsRouteImport } from './routes/receipts'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 
 const RecurringRoute = RecurringRouteImport.update({
   id: '/recurring',
   path: '/recurring',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceiptsRoute = ReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AddRoute = AddRouteImport.update({
@@ -32,30 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/receipts': typeof ReceiptsRoute
   '/recurring': typeof RecurringRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/receipts': typeof ReceiptsRoute
   '/recurring': typeof RecurringRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/receipts': typeof ReceiptsRoute
   '/recurring': typeof RecurringRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add' | '/recurring'
+  fullPaths: '/' | '/add' | '/receipts' | '/recurring'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add' | '/recurring'
-  id: '__root__' | '/' | '/add' | '/recurring'
+  to: '/' | '/add' | '/receipts' | '/recurring'
+  id: '__root__' | '/' | '/add' | '/receipts' | '/recurring'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddRoute: typeof AddRoute
+  ReceiptsRoute: typeof ReceiptsRoute
   RecurringRoute: typeof RecurringRoute
 }
 
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/recurring'
       fullPath: '/recurring'
       preLoaderRoute: typeof RecurringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/receipts': {
+      id: '/receipts'
+      path: '/receipts'
+      fullPath: '/receipts'
+      preLoaderRoute: typeof ReceiptsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/add': {
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
+  ReceiptsRoute: ReceiptsRoute,
   RecurringRoute: RecurringRoute,
 }
 export const routeTree = rootRouteImport
