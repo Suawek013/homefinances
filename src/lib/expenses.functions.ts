@@ -71,6 +71,48 @@ export const createExpense = createServerFn({ method: "POST" })
     return row as ExpenseRow;
   });
 
+export const getExpense = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { data: row, error } = await supabaseAdmin
+      .from("expenses")
+      .select("*")
+      .eq("id", data.id)
+      .single();
+    if (error) throw new Error(error.message);
+    return row as ExpenseRow;
+  });
+
+export const updateExpense = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({
+      id: z.string().uuid(),
+      amount: z.number().nonnegative(),
+      category: CATEGORY,
+      spent_on: z.string(),
+      description: z.string().default(""),
+      person_id: PERSON,
+      receipt_id: z.string().uuid().nullable().optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { data: row, error } = await supabaseAdmin
+      .from("expenses")
+      .update({
+        amount: data.amount,
+        category: data.category,
+        spent_on: data.spent_on,
+        description: data.description,
+        person_id: data.person_id,
+        receipt_id: data.receipt_id ?? null,
+      })
+      .eq("id", data.id)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row as ExpenseRow;
+  });
+
 export const deleteExpense = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
