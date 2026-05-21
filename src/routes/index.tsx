@@ -256,12 +256,21 @@ function Dashboard() {
               </div>
               <div className="text-right">
                 <div className="font-semibold">{formatMoney(Number(e.amount))}</div>
-                <button
-                  onClick={() => delMut.mutate(e.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center justify-end gap-1.5">
+                  <Link
+                    to="/add"
+                    search={{ id: e.id }}
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Link>
+                  <button
+                    onClick={() => delMut.mutate(e.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </Card>
           );
