@@ -206,7 +206,7 @@ export const updateMyMember = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { userId } = context;
-    const patch: Record<string, string> = {};
+    const patch: { display_name?: string; color?: string } = {};
     if (data.display_name !== undefined) patch.display_name = data.display_name;
     if (data.color !== undefined) patch.color = data.color;
     if (Object.keys(patch).length === 0) return { ok: true };
