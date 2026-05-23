@@ -4,7 +4,9 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Camera, Loader2, Pencil } from "lucide-react";
 import { createExpense, updateExpense, getExpense } from "@/lib/expenses.functions";
 import { uploadAndParseReceipt } from "@/lib/receipts.functions";
-import { CATEGORIES, type Category, formatMoney } from "@/lib/categories";
+import { CATEGORIES, type Category, formatMoney, monthKey, CATEGORY_MAP } from "@/lib/categories";
+import { listCategoryBudgets } from "@/lib/settings.functions";
+import { getMonthlyStats } from "@/lib/expenses.functions";
 import { usePerson, PEOPLE, personColor, type PersonId } from "@/lib/person";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,27 @@ function AddExpense() {
     queryFn: () => getExpense({ data: { id: editingId! } }),
     enabled: isEditing,
   });
+
+  const month = monthKey(new Date());
+  const catBudgetsQ = useQuery({
+    queryKey: ["categoryBudgets"],
+    queryFn: () => listCategoryBudgets(),
+  });
+  const monthStatsQ = useQuery({
+    queryKey: ["stats", month],
+    queryFn: () => getMonthlyStats({ data: { month } }),
+  });
+
+  const catLimit = catBudgetsQ.data?.find((b) => b.category === category)?.amount ?? null;
+  const catSpent = monthStatsQ.data?.byCategory?.[category] ?? 0;
+  const pendingAmount = Number(amount) || 0;
+  // when editing, exclude original amount from "already spent" if same category
+  const originalAmount =
+    isEditing && existing.data && existing.data.category === category
+      ? Number(existing.data.amount)
+      : 0;
+  const projected = catSpent - originalAmount + pendingAmount;
+  const remainingAfter = catLimit != null ? catLimit - projected : null;
 
   useEffect(() => {
     if (existing.data) {
@@ -198,6 +221,27 @@ function AddExpense() {
               );
             })}
           </div>
+          {catLimit != null && (
+            <div className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {CATEGORY_MAP[category].label} budget
+                </span>
+                <span
+                  className={
+                    remainingAfter! < 0 ? "font-semibold text-destructive" : "font-semibold text-primary"
+                  }
+                >
+                  {remainingAfter! >= 0
+                    ? `${formatMoney(remainingAfter!)} left after this`
+                    : `${formatMoney(-remainingAfter!)} over after this`}
+                </span>
+              </div>
+              <div className="mt-1 text-[10px] text-muted-foreground">
+                Spent so far: {formatMoney(catSpent)} of {formatMoney(catLimit)}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
