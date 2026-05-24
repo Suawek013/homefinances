@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -7,11 +7,10 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-
+import { useEffect } from "react";
 import appCss from "../styles.css?url";
-import { PersonProvider, usePerson, PEOPLE, personColor } from "@/lib/person";
+import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
-import { LayoutDashboard, PlusCircle, Repeat, Receipt } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -117,79 +116,24 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
   return (
     <QueryClientProvider client={queryClient}>
-      <PersonProvider>
-        <AppShell />
-        <Toaster position="top-center" />
-      </PersonProvider>
+      <AuthSync />
+      <Outlet />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
 
-function AppShell() {
-  const { current, setCurrent } = usePerson();
-  return (
-    <div className="flex min-h-screen flex-col bg-background pb-20">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="text-base font-semibold tracking-tight">Household Budget</h1>
-            <p className="text-xs text-muted-foreground">Slawek &amp; Natalia</p>
-          </div>
-          <div className="flex rounded-full bg-muted p-1">
-            {PEOPLE.map((p) => {
-              const active = current === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setCurrent(p.id)}
-                  className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
-                  style={
-                    active
-                      ? { background: personColor(p.id), color: "white" }
-                      : { color: "var(--muted-foreground)" }
-                  }
-                >
-                  {p.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-xl flex-1 px-4 py-4">
-        <Outlet />
-      </main>
-      <BottomNav />
-    </div>
-  );
-}
-
-function BottomNav() {
-  const items = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/add", label: "Add", icon: PlusCircle },
-    { to: "/recurring", label: "Recurring", icon: Repeat },
-    { to: "/receipts", label: "Receipts", icon: Receipt },
-  ] as const;
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto grid w-full max-w-xl grid-cols-4">
-        {items.map((it) => (
-          <Link
-            key={it.to}
-            to={it.to}
-            className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground"
-            activeOptions={{ exact: it.to === "/" }}
-            activeProps={{ className: "flex flex-col items-center gap-1 py-2 text-xs text-primary" }}
-          >
-            <it.icon className="h-5 w-5" />
-            <span>{it.label}</span>
-          </Link>
-        ))}
-      </div>
-    </nav>
-  );
+function AuthSync() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      router.invalidate();
+      queryClient.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [router, queryClient]);
+  return null;
 }
