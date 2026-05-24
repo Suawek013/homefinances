@@ -2,16 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generateText, Output } from "ai";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireMember } from "./household.server";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
-
-const PERSON = z.enum(["slawek", "natalia"]);
 
 export type ReceiptRow = {
   id: string;
   storage_path: string;
   extracted_total: number | null;
   raw_ocr_text: string | null;
-  person_id: "slawek" | "natalia";
+  user_id: string;
+  household_id: string;
   created_at: string;
   public_url: string;
 };
@@ -20,23 +21,29 @@ function publicUrl(path: string): string {
   return supabaseAdmin.storage.from("receipts").getPublicUrl(path).data.publicUrl;
 }
 
-export const listReceipts = createServerFn({ method: "POST" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
-    .from("receipts").select("*").order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => ({ ...r, public_url: publicUrl(r.storage_path) })) as ReceiptRow[];
-});
+export const listReceipts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const m = await requireMember(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("receipts").select("*")
+      .eq("household_id", m.household_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({ ...r, public_url: publicUrl(r.storage_path) })) as ReceiptRow[];
+  });
 
 // Upload receipt: takes base64 image, stores it, runs OCR via Lovable AI, returns extracted total.
 export const uploadAndParseReceipt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       base64: z.string().min(20),
       mimeType: z.string().default("image/jpeg"),
-      person_id: PERSON,
     }).parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const m = await requireMember(context.userId);
     const ext = data.mimeType.includes("png") ? "png" : "jpg";
     const path = `${crypto.randomUUID()}.${ext}`;
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
@@ -91,7 +98,8 @@ export const uploadAndParseReceipt = createServerFn({ method: "POST" })
       storage_path: path,
       extracted_total,
       raw_ocr_text: raw.slice(0, 4000),
-      person_id: data.person_id,
+      user_id: context.userId,
+      household_id: m.household_id,
     }).select("*").single();
     if (error) throw new Error(error.message);
 
@@ -104,13 +112,18 @@ export const uploadAndParseReceipt = createServerFn({ method: "POST" })
   });
 
 export const deleteReceipt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
-    const { data: r } = await supabaseAdmin.from("receipts").select("storage_path").eq("id", data.id).single();
+  .handler(async ({ data, context }) => {
+    const m = await requireMember(context.userId);
+    const { data: r } = await supabaseAdmin
+      .from("receipts").select("storage_path")
+      .eq("id", data.id).eq("household_id", m.household_id).single();
     if (r?.storage_path) {
       await supabaseAdmin.storage.from("receipts").remove([r.storage_path]);
     }
-    const { error } = await supabaseAdmin.from("receipts").delete().eq("id", data.id);
+    const { error } = await supabaseAdmin
+      .from("receipts").delete().eq("id", data.id).eq("household_id", m.household_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
