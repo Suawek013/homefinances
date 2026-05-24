@@ -17,8 +17,11 @@ export type ReceiptRow = {
   public_url: string;
 };
 
-function publicUrl(path: string): string {
-  return supabaseAdmin.storage.from("receipts").getPublicUrl(path).data.publicUrl;
+async function signedUrl(path: string): Promise<string> {
+  const { data } = await supabaseAdmin.storage
+    .from("receipts")
+    .createSignedUrl(path, 60 * 60);
+  return data?.signedUrl ?? "";
 }
 
 export const listReceipts = createServerFn({ method: "POST" })
@@ -30,7 +33,10 @@ export const listReceipts = createServerFn({ method: "POST" })
       .eq("household_id", m.household_id)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((r) => ({ ...r, public_url: publicUrl(r.storage_path) })) as ReceiptRow[];
+    const rows = await Promise.all(
+      (data ?? []).map(async (r) => ({ ...r, public_url: await signedUrl(r.storage_path) })),
+    );
+    return rows as ReceiptRow[];
   });
 
 // Upload receipt: takes base64 image, stores it, runs OCR via Lovable AI, returns extracted total.
@@ -104,7 +110,7 @@ export const uploadAndParseReceipt = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     return {
-      receipt: { ...row, public_url: publicUrl(row.storage_path) } as ReceiptRow,
+      receipt: { ...row, public_url: await signedUrl(row.storage_path) } as ReceiptRow,
       extracted_total,
       merchant,
       date,
