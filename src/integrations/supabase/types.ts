@@ -46,6 +46,33 @@ export type Database = {
           },
         ]
       }
+      custom_categories: {
+        Row: {
+          color: string
+          created_at: string
+          household_id: string
+          icon: string
+          id: string
+          label: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          household_id: string
+          icon?: string
+          id?: string
+          label: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          household_id?: string
+          icon?: string
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number

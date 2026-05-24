@@ -5,22 +5,24 @@ import { formatMoney } from "@/lib/categories";
 import { useMe, memberName } from "@/lib/me";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/receipts")({
   component: ReceiptsPage,
 });
 
 function ReceiptsPage() {
+  const t = useT();
   const list = useQuery({ queryKey: ["receipts"], queryFn: () => listReceipts() });
   const me = useMe();
   const qc = useQueryClient();
   const del = useMutation({
     mutationFn: (id: string) => deleteReceipt({ data: { id } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["receipts"] }); toast.success("Deleted"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["receipts"] }); toast.success(t("common.delete")); },
   });
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Receipts</h2>
+      <h2 className="text-lg font-semibold">{t("recpt.title")}</h2>
       <div className="grid grid-cols-2 gap-3">
         {(list.data ?? []).map((r) => (
           <div key={r.id} className="overflow-hidden rounded-xl border border-border bg-card">
@@ -37,7 +39,7 @@ function ReceiptsPage() {
           </div>
         ))}
       </div>
-      {(!list.data || list.data.length === 0) && <p className="text-sm text-muted-foreground">No receipts yet.</p>}
+      {(!list.data || list.data.length === 0) && <p className="text-sm text-muted-foreground">{t("recpt.none")}</p>}
     </div>
   );
 }
