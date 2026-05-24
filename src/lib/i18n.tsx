@@ -1,0 +1,206 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+
+export type Lang = "en" | "pl";
+
+type Dict = Record<string, string>;
+
+const EN: Dict = {
+  "app.title": "Household Budget",
+  "app.tagline": "Shared household budget for two.",
+  "nav.home": "Home",
+  "nav.add": "Add",
+  "nav.recurring": "Recurring",
+  "nav.receipts": "Receipts",
+  "nav.household": "Household",
+  "auth.signOut": "Sign out",
+  "auth.continueGoogle": "Continue with Google",
+  "auth.opening": "Opening Google…",
+  "auth.signInPrompt": "Shared budget for your home. Sign in to continue.",
+  "onboard.welcome": "Welcome 👋",
+  "onboard.subtitle": "Create a household or join one.",
+  "onboard.createNew": "Create new",
+  "onboard.joinCode": "Join with code",
+  "onboard.yourName": "Your name",
+  "onboard.householdName": "Household name",
+  "onboard.inviteCode": "Invite code",
+  "onboard.create": "Create household",
+  "onboard.join": "Join household",
+  "onboard.working": "Working…",
+  "dash.thisMonth": "This month",
+  "dash.remaining": "Remaining",
+  "dash.over": "Over budget",
+  "dash.setBudget": "Set monthly budget",
+  "dash.editBudget": "Edit budget",
+  "dash.byCategory": "By category",
+  "dash.recent": "Recent",
+  "dash.noExpenses": "No expenses yet this month.",
+  "dash.nothing": "Nothing here yet.",
+  "dash.addExpense": "+ Add expense",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.delete": "Delete",
+  "common.add": "Add",
+  "common.saving": "Saving…",
+  "common.loading": "Loading…",
+  "add.title": "Add expense",
+  "add.scan": "📷 Scan receipt (optional)",
+  "add.scanning": "Scanning…",
+  "add.amount": "Amount",
+  "add.category": "Category",
+  "add.date": "Date",
+  "add.note": "Note",
+  "rec.title": "Recurring bills",
+  "rec.logMonth": "Log this month",
+  "rec.addNew": "Add new",
+  "rec.name": "Name",
+  "rec.day": "Day of month",
+  "rec.paid": "Paid",
+  "rec.pending": "Pending",
+  "rec.none": "No recurring bills.",
+  "recpt.title": "Receipts",
+  "recpt.none": "No receipts yet.",
+  "hh.title": "Household",
+  "hh.you": "(you)",
+  "hh.inviteCodes": "Invite codes",
+  "hh.newInvite": "New invite",
+  "hh.noInvites": "No invites yet.",
+  "hh.expires": "Expires",
+  "hh.used": "Used",
+  "hh.codeCopied": "Code copied",
+  "hh.budgets": "Category budgets (optional)",
+  "hh.leave": "Leave household",
+  "hh.leaveConfirm": "Leave household?",
+  "hh.customCats": "Custom categories",
+  "hh.customAdd": "Add",
+  "hh.customLabel": "Label",
+  "hh.customColor": "Color",
+  "hh.customNone": "No custom categories yet.",
+  "lang.label": "Language",
+  // Built-in category labels
+  "cat.food": "Food & Groceries",
+  "cat.utilities": "Utilities",
+  "cat.rent": "Rent",
+  "cat.fuel": "Fuel",
+  "cat.hobbies": "Hobbies",
+  "cat.gaming": "Gaming",
+  "cat.clothing": "Clothing",
+  "cat.health": "Health",
+  "cat.restaurants": "Restaurants",
+  "cat.subscriptions": "Subscriptions",
+  "cat.other": "Other",
+};
+
+const PL: Dict = {
+  "app.title": "Budżet Domowy",
+  "app.tagline": "Wspólny budżet domowy dla dwojga.",
+  "nav.home": "Start",
+  "nav.add": "Dodaj",
+  "nav.recurring": "Cykliczne",
+  "nav.receipts": "Paragony",
+  "nav.household": "Dom",
+  "auth.signOut": "Wyloguj",
+  "auth.continueGoogle": "Kontynuuj z Google",
+  "auth.opening": "Otwieram Google…",
+  "auth.signInPrompt": "Wspólny budżet dla Twojego domu. Zaloguj się, by kontynuować.",
+  "onboard.welcome": "Witaj 👋",
+  "onboard.subtitle": "Stwórz gospodarstwo lub dołącz do istniejącego.",
+  "onboard.createNew": "Utwórz nowe",
+  "onboard.joinCode": "Dołącz z kodem",
+  "onboard.yourName": "Twoje imię",
+  "onboard.householdName": "Nazwa gospodarstwa",
+  "onboard.inviteCode": "Kod zaproszenia",
+  "onboard.create": "Utwórz gospodarstwo",
+  "onboard.join": "Dołącz",
+  "onboard.working": "Pracuję…",
+  "dash.thisMonth": "W tym miesiącu",
+  "dash.remaining": "Zostało",
+  "dash.over": "Przekroczono budżet",
+  "dash.setBudget": "Ustaw budżet miesięczny",
+  "dash.editBudget": "Edytuj budżet",
+  "dash.byCategory": "Wg kategorii",
+  "dash.recent": "Ostatnie",
+  "dash.noExpenses": "Brak wydatków w tym miesiącu.",
+  "dash.nothing": "Nic tu jeszcze nie ma.",
+  "dash.addExpense": "+ Dodaj wydatek",
+  "common.save": "Zapisz",
+  "common.cancel": "Anuluj",
+  "common.delete": "Usuń",
+  "common.add": "Dodaj",
+  "common.saving": "Zapisywanie…",
+  "common.loading": "Ładowanie…",
+  "add.title": "Dodaj wydatek",
+  "add.scan": "📷 Zeskanuj paragon (opcjonalnie)",
+  "add.scanning": "Skanowanie…",
+  "add.amount": "Kwota",
+  "add.category": "Kategoria",
+  "add.date": "Data",
+  "add.note": "Notatka",
+  "rec.title": "Rachunki cykliczne",
+  "rec.logMonth": "Zaksięguj ten miesiąc",
+  "rec.addNew": "Dodaj nowy",
+  "rec.name": "Nazwa",
+  "rec.day": "Dzień miesiąca",
+  "rec.paid": "Zapłacone",
+  "rec.pending": "Oczekuje",
+  "rec.none": "Brak rachunków cyklicznych.",
+  "recpt.title": "Paragony",
+  "recpt.none": "Brak paragonów.",
+  "hh.title": "Gospodarstwo",
+  "hh.you": "(ty)",
+  "hh.inviteCodes": "Kody zaproszeń",
+  "hh.newInvite": "Nowe zaproszenie",
+  "hh.noInvites": "Brak zaproszeń.",
+  "hh.expires": "Wygasa",
+  "hh.used": "Użyte",
+  "hh.codeCopied": "Kod skopiowany",
+  "hh.budgets": "Budżety kategorii (opcjonalne)",
+  "hh.leave": "Opuść gospodarstwo",
+  "hh.leaveConfirm": "Opuścić gospodarstwo?",
+  "hh.customCats": "Własne kategorie",
+  "hh.customAdd": "Dodaj",
+  "hh.customLabel": "Nazwa",
+  "hh.customColor": "Kolor",
+  "hh.customNone": "Brak własnych kategorii.",
+  "lang.label": "Język",
+  "cat.food": "Jedzenie i zakupy",
+  "cat.utilities": "Media",
+  "cat.rent": "Czynsz",
+  "cat.fuel": "Paliwo",
+  "cat.hobbies": "Hobby",
+  "cat.gaming": "Gry",
+  "cat.clothing": "Ubrania",
+  "cat.health": "Zdrowie",
+  "cat.restaurants": "Restauracje",
+  "cat.subscriptions": "Subskrypcje",
+  "cat.other": "Inne",
+};
+
+const DICTS: Record<Lang, Dict> = { en: EN, pl: PL };
+
+type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (k: string) => string };
+const I18nCtx = createContext<Ctx>({ lang: "en", setLang: () => {}, t: (k) => k });
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>("en");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("lang") as Lang | null;
+      if (saved === "pl" || saved === "en") setLangState(saved);
+      else if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("pl")) setLangState("pl");
+    } catch {}
+  }, []);
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    try { localStorage.setItem("lang", l); } catch {}
+  };
+  const t = (k: string) => DICTS[lang][k] ?? EN[k] ?? k;
+  return <I18nCtx.Provider value={{ lang, setLang, t }}>{children}</I18nCtx.Provider>;
+}
+
+export function useI18n() {
+  return useContext(I18nCtx);
+}
+
+export function useT() {
+  return useContext(I18nCtx).t;
+}
