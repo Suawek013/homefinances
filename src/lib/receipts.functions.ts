@@ -110,7 +110,7 @@ export const uploadAndParseReceipt = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     return {
-      receipt: { ...row, public_url: publicUrl(row.storage_path) } as ReceiptRow,
+      receipt: { ...row, public_url: await signedUrl(row.storage_path) } as ReceiptRow,
       extracted_total,
       merchant,
       date,
