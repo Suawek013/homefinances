@@ -4,10 +4,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireMember } from "./household.server";
 
-const CATEGORY = z.enum([
-  "food","utilities","rent","fuel","hobbies","gaming",
-  "clothing","health","restaurants","subscriptions","other",
-]);
+const CATEGORY = z.string().min(1).max(60);
 
 export const getSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
