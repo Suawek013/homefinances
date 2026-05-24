@@ -97,13 +97,13 @@ function SignOutButton() {
 }
 
 function BottomNav() {
-  const items = [
+  const items: { to: "/" | "/add" | "/recurring" | "/receipts" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
     { to: "/", label: "Home", icon: LayoutDashboard, exact: true },
     { to: "/add", label: "Add", icon: PlusCircle },
     { to: "/recurring", label: "Recurring", icon: Repeat },
     { to: "/receipts", label: "Receipts", icon: Receipt },
     { to: "/household", label: "Household", icon: Users },
-  ] as const;
+  ];
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur">
       <div className="mx-auto grid w-full max-w-xl grid-cols-5">
