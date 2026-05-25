@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getMonthlyStats, listExpenses, deleteExpense } from "@/lib/expenses.functions";
 import { getSettings, updateBudget, listCategoryBudgets } from "@/lib/settings.functions";
+import { getRecurringStatus, materializeRecurringForMonth } from "@/lib/recurring.functions";
 import { formatMoney, monthKey } from "@/lib/categories";
 import { useAllCategories } from "@/lib/use-categories";
 import { useMe, memberName, memberColor } from "@/lib/me";
@@ -26,6 +27,10 @@ function Dashboard() {
   const settings = useQuery({ queryKey: ["settings"], queryFn: () => getSettings() });
   const catBudgets = useQuery({ queryKey: ["cat-budgets"], queryFn: () => listCategoryBudgets() });
   const qc = useQueryClient();
+  const recurring = useQuery({
+    queryKey: ["recurring-status", month],
+    queryFn: () => getRecurringStatus({ data: { month } }),
+  });
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const expenses = useQuery({
     queryKey: ["expenses", month, selectedUser],
@@ -55,6 +60,13 @@ function Dashboard() {
   const donutTotal = selectedUser ? userTotal : totalAll;
   const remaining = budget != null ? budget - totalAll : null;
   const selectedMember = selectedUser ? me.data?.members.find((m) => m.user_id === selectedUser) : null;
+
+  const pendingRecurring = (recurring.data ?? []).filter((r) => !r.paid);
+  const payMut = useMutation({
+    mutationFn: () => materializeRecurringForMonth({ data: { month } }),
+    onSuccess: () => { qc.invalidateQueries(); toast.success(t("rec.paid")); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-4">
@@ -151,6 +163,11 @@ function Dashboard() {
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h2 className="mb-2 text-sm font-medium">{t("dash.recent")}</h2>
+      </div>
+    </div>
+  );
+}
+
         <ul className="divide-y divide-border">
           {(expenses.data ?? []).slice(0, 20).map((e) => {
             const def = cats.resolve(e.category);
