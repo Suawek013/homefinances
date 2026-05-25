@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getMonthlyStats, listExpenses, deleteExpense } from "@/lib/expenses.functions";
 import { getSettings, updateBudget, listCategoryBudgets } from "@/lib/settings.functions";
+import { getRecurringStatus, materializeRecurringForMonth } from "@/lib/recurring.functions";
 import { formatMoney, monthKey } from "@/lib/categories";
 import { useAllCategories } from "@/lib/use-categories";
 import { useMe, memberName, memberColor } from "@/lib/me";
@@ -26,6 +27,10 @@ function Dashboard() {
   const settings = useQuery({ queryKey: ["settings"], queryFn: () => getSettings() });
   const catBudgets = useQuery({ queryKey: ["cat-budgets"], queryFn: () => listCategoryBudgets() });
   const qc = useQueryClient();
+  const recurring = useQuery({
+    queryKey: ["recurring-status", month],
+    queryFn: () => getRecurringStatus({ data: { month } }),
+  });
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const expenses = useQuery({
     queryKey: ["expenses", month, selectedUser],
@@ -55,6 +60,13 @@ function Dashboard() {
   const donutTotal = selectedUser ? userTotal : totalAll;
   const remaining = budget != null ? budget - totalAll : null;
   const selectedMember = selectedUser ? me.data?.members.find((m) => m.user_id === selectedUser) : null;
+
+  const pendingRecurring = (recurring.data ?? []).filter((r) => !r.paid);
+  const payMut = useMutation({
+    mutationFn: () => materializeRecurringForMonth({ data: { month } }),
+    onSuccess: () => { qc.invalidateQueries(); toast.success(t("rec.paid")); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-4">
@@ -178,6 +190,40 @@ function Dashboard() {
             <li className="py-2 text-sm text-muted-foreground">{t("dash.nothing")}</li>
           )}
         </ul>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-medium">{t("dash.pendingRecurring")}</h2>
+          {pendingRecurring.length > 0 && (
+            <Button size="sm" variant="outline" onClick={() => payMut.mutate()} disabled={payMut.isPending}>
+              {t("rec.logMonth")}
+            </Button>
+          )}
+        </div>
+        {pendingRecurring.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {recurring.data && recurring.data.length > 0 ? t("dash.allPaid") : t("rec.none")}
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {pendingRecurring.map((r) => {
+              const def = cats.resolve(r.category);
+              return (
+                <li key={r.id} className="flex items-center justify-between py-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <def.icon className="h-4 w-4" style={{ color: def.color }} />
+                    <div>
+                      <p>{r.name}</p>
+                      <p className="text-xs text-muted-foreground">{t("rec.day")}: {r.day_of_month}</p>
+                    </div>
+                  </div>
+                  <span className="tabular-nums">{formatMoney(Number(r.amount))}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
       <Link to="/add" className="fixed bottom-24 right-4 z-20 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-lg">
