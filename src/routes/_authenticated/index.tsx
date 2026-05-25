@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { CategoryDonut } from "@/components/CategoryDonut";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
@@ -24,8 +25,12 @@ function Dashboard() {
   const stats = useQuery({ queryKey: ["stats", month], queryFn: () => getMonthlyStats({ data: { month } }) });
   const settings = useQuery({ queryKey: ["settings"], queryFn: () => getSettings() });
   const catBudgets = useQuery({ queryKey: ["cat-budgets"], queryFn: () => listCategoryBudgets() });
-  const expenses = useQuery({ queryKey: ["expenses", month], queryFn: () => listExpenses({ data: { month } }) });
   const qc = useQueryClient();
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const expenses = useQuery({
+    queryKey: ["expenses", month, selectedUser],
+    queryFn: () => listExpenses({ data: { month, userId: selectedUser ?? undefined } }),
+  });
 
   const delMut = useMutation({
     mutationFn: (id: string) => deleteExpense({ data: { id } }),
@@ -34,14 +39,28 @@ function Dashboard() {
   });
 
   const budget = settings.data?.monthly_budget;
-  const total = stats.data?.total ?? 0;
-  const remaining = budget != null ? budget - total : null;
+  const totalAll = stats.data?.total ?? 0;
+
+  // Per-user category breakdown derived from byCategoryUser
+  const userCategoryData: Record<string, number> = {};
+  if (selectedUser && stats.data) {
+    for (const [cat, perUser] of Object.entries(stats.data.byCategoryUser)) {
+      const amt = perUser[selectedUser] ?? 0;
+      if (amt > 0) userCategoryData[cat] = amt;
+    }
+  }
+  const userTotal = selectedUser ? (stats.data?.byUser[selectedUser] ?? 0) : 0;
+
+  const donutData = selectedUser ? userCategoryData : (stats.data?.byCategory ?? {});
+  const donutTotal = selectedUser ? userTotal : totalAll;
+  const remaining = budget != null ? budget - totalAll : null;
+  const selectedMember = selectedUser ? me.data?.members.find((m) => m.user_id === selectedUser) : null;
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-border bg-card p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("dash.thisMonth")}</p>
-        <p className="mt-1 text-3xl font-semibold">{formatMoney(total)}</p>
+        <p className="mt-1 text-3xl font-semibold">{formatMoney(totalAll)}</p>
         {budget != null && (
           <p className={`mt-1 text-sm ${remaining! < 0 ? "text-destructive" : "text-muted-foreground"}`}>
             {remaining! >= 0 ? t("dash.remaining") : t("dash.over")}: {formatMoney(Math.abs(remaining!))}
@@ -50,14 +69,51 @@ function Dashboard() {
         <BudgetEditor current={budget ?? null} />
       </div>
 
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-medium">
+            {t("dash.viewing")}:{" "}
+            <span style={{ color: selectedMember?.color }}>
+              {selectedMember?.display_name ?? t("dash.everyone")}
+            </span>
+          </h2>
+          {selectedUser && (
+            <button onClick={() => setSelectedUser(null)} className="text-xs text-primary hover:underline">
+              {t("dash.clearFilter")}
+            </button>
+          )}
+        </div>
+        {donutTotal > 0 ? (
+          <CategoryDonut
+            data={donutData}
+            resolve={cats.resolve}
+            budget={selectedUser ? null : budget}
+            centerLabel={t("dash.spent")}
+            centerSub={
+              !selectedUser && budget != null
+                ? `${remaining! >= 0 ? t("dash.left") : t("dash.over")}: ${formatMoney(Math.abs(remaining!))}`
+                : undefined
+            }
+          />
+        ) : (
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("dash.noExpenses")}</p>
+        )}
+      </div>
+
       <div className="grid grid-cols-2 gap-2">
         {me.data?.members.map((m) => (
-          <div key={m.user_id} className="rounded-xl border border-border bg-card p-3">
+          <button
+            key={m.user_id}
+            onClick={() => setSelectedUser(selectedUser === m.user_id ? null : m.user_id)}
+            className={`rounded-xl border bg-card p-3 text-left transition ${
+              selectedUser === m.user_id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+            }`}
+          >
             <p className="text-xs text-muted-foreground">{m.display_name}</p>
             <p className="mt-1 text-lg font-semibold" style={{ color: m.color }}>
               {formatMoney(stats.data?.byUser[m.user_id] ?? 0)}
             </p>
-          </div>
+          </button>
         ))}
       </div>
 
