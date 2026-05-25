@@ -164,3 +164,33 @@ export const getMonthlyStats = createServerFn({ method: "POST" })
     }
     return { total, byUser, byCategory, byCategoryUser, count: rows?.length ?? 0 };
   });
+
+export const bulkImportExpenses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      rows: z.array(
+        z.object({
+          amount: z.number().nonnegative(),
+          category: CATEGORY,
+          spent_on: z.string(),
+          description: z.string().default(""),
+        })
+      ).min(1).max(500),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const m = await requireMember(context.userId);
+    const payload = data.rows.map((r) => ({
+      amount: r.amount,
+      category: r.category,
+      spent_on: r.spent_on,
+      description: r.description,
+      user_id: context.userId,
+      household_id: m.household_id,
+    }));
+    const { data: inserted, error } = await supabaseAdmin
+      .from("expenses").insert(payload).select("id");
+    if (error) throw new Error(error.message);
+    return { count: inserted?.length ?? 0 };
+  });
