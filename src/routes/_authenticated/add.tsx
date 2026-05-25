@@ -97,7 +97,7 @@ function AddPage() {
         const rawAmt = (r[idx.amount] ?? "").replace(/\s/g, "").replace(",", ".");
         const amount = Number(rawAmt);
         const catRaw = (r[idx.category] ?? "").trim();
-        const cat = labelToId.get(catRaw.toLowerCase()) ?? catRaw || "other";
+        const cat = labelToId.get(catRaw.toLowerCase()) ?? (catRaw || "other");
         const dateRaw = (r[idx.date] ?? "").trim();
         const spent_on = normalizeDate(dateRaw);
         const note = idx.note >= 0 ? (r[idx.note] ?? "").trim() : "";
