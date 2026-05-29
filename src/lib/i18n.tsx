@@ -179,6 +179,8 @@ const PL: Dict = {
   "rec.paid": "Zapłacone",
   "rec.pending": "Oczekuje",
   "rec.none": "Brak rachunków cyklicznych.",
+  "rec.totalMonthly": "Suma miesięczna",
+  "rec.totalPending": "Suma oczekujących",
   "recpt.title": "Paragony",
   "recpt.none": "Brak paragonów.",
   "hh.title": "Gospodarstwo",
