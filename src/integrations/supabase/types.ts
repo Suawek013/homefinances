@@ -251,6 +251,47 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_incomes: {
+        Row: {
+          amount: number
+          created_at: string
+          household_id: string
+          id: string
+          note: string
+          updated_at: string
+          user_id: string
+          year_month: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          household_id: string
+          id?: string
+          note?: string
+          updated_at?: string
+          user_id: string
+          year_month: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          household_id?: string
+          id?: string
+          note?: string
+          updated_at?: string
+          user_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_incomes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       receipts: {
         Row: {
           created_at: string
@@ -378,6 +419,44 @@ export type Database = {
             columns: ["recurring_id"]
             isOneToOne: false
             referencedRelation: "recurring_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          household_id: string
+          id: string
+          label: string
+          occurred_on: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          household_id: string
+          id?: string
+          label?: string
+          occurred_on?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          household_id?: string
+          id?: string
+          label?: string
+          occurred_on?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_entries_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
         ]
