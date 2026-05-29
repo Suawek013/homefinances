@@ -69,6 +69,7 @@ function Dashboard() {
   const selectedMember = selectedUser ? me.data?.members.find((m) => m.user_id === selectedUser) : null;
 
   const pendingRecurring = (recurring.data ?? []).filter((r) => !r.paid);
+  const pendingRecurringTotal = pendingRecurring.reduce((s, r) => s + Number(r.amount), 0);
   const payMut = useMutation({
     mutationFn: () => materializeRecurringForMonth({ data: { month } }),
     onSuccess: () => { qc.invalidateQueries(); toast.success(t("rec.paid")); },
@@ -226,6 +227,11 @@ function Dashboard() {
             </Button>
           )}
         </div>
+        {pendingRecurring.length > 0 && (
+          <p className="mb-2 text-xs text-muted-foreground">
+            {t("rec.totalPending")}: <span className="font-medium text-foreground tabular-nums">{formatMoney(pendingRecurringTotal)}</span>
+          </p>
+        )}
         {pendingRecurring.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {recurring.data && recurring.data.length > 0 ? t("dash.allPaid") : t("rec.none")}

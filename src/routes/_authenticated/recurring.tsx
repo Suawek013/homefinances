@@ -45,12 +45,28 @@ function RecurringPage() {
     onSuccess: (r) => { qc.invalidateQueries(); toast.success(`${r.created}`); },
   });
 
+  const totalMonthly = (list.data ?? []).filter((r) => r.active).reduce((s, r) => s + Number(r.amount), 0);
+  const pendingTotal = (status.data ?? []).filter((s) => !s.paid).reduce((s, r) => s + Number(r.amount), 0);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t("rec.title")}</h2>
         <Button size="sm" variant="outline" onClick={() => materialize.mutate()}>{t("rec.logMonth")}</Button>
       </div>
+
+      {(list.data?.length ?? 0) > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-3 text-sm flex items-center justify-between">
+          <span className="text-muted-foreground">{t("rec.totalMonthly")}</span>
+          <span className="font-semibold tabular-nums">{formatMoney(totalMonthly)}</span>
+        </div>
+      )}
+      {pendingTotal > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-3 text-sm flex items-center justify-between">
+          <span className="text-muted-foreground">{t("rec.totalPending")}</span>
+          <span className="font-semibold tabular-nums">{formatMoney(pendingTotal)}</span>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
         <h3 className="text-sm font-medium">{t("rec.addNew")}</h3>
