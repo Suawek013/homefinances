@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedRecurringRouteImport } from './routes/_authenticated/recurring'
 import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticated/receipts'
 import { Route as AuthenticatedHouseholdRouteImport } from './routes/_authenticated/household'
+import { Route as AuthenticatedFinancesRouteImport } from './routes/_authenticated/finances'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
 
 const LoginRoute = LoginRouteImport.update({
@@ -46,6 +47,11 @@ const AuthenticatedHouseholdRoute = AuthenticatedHouseholdRouteImport.update({
   path: '/household',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFinancesRoute = AuthenticatedFinancesRouteImport.update({
+  id: '/finances',
+  path: '/finances',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAddRoute = AuthenticatedAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -56,6 +62,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/add': typeof AuthenticatedAddRoute
+  '/finances': typeof AuthenticatedFinancesRoute
   '/household': typeof AuthenticatedHouseholdRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
   '/recurring': typeof AuthenticatedRecurringRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/add': typeof AuthenticatedAddRoute
+  '/finances': typeof AuthenticatedFinancesRoute
   '/household': typeof AuthenticatedHouseholdRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
   '/recurring': typeof AuthenticatedRecurringRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/add': typeof AuthenticatedAddRoute
+  '/_authenticated/finances': typeof AuthenticatedFinancesRoute
   '/_authenticated/household': typeof AuthenticatedHouseholdRoute
   '/_authenticated/receipts': typeof AuthenticatedReceiptsRoute
   '/_authenticated/recurring': typeof AuthenticatedRecurringRoute
@@ -80,14 +89,29 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/add' | '/household' | '/receipts' | '/recurring'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/add'
+    | '/finances'
+    | '/household'
+    | '/receipts'
+    | '/recurring'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/add' | '/household' | '/receipts' | '/recurring' | '/'
+  to:
+    | '/login'
+    | '/add'
+    | '/finances'
+    | '/household'
+    | '/receipts'
+    | '/recurring'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/add'
+    | '/_authenticated/finances'
     | '/_authenticated/household'
     | '/_authenticated/receipts'
     | '/_authenticated/recurring'
@@ -143,6 +167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHouseholdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/finances': {
+      id: '/_authenticated/finances'
+      path: '/finances'
+      fullPath: '/finances'
+      preLoaderRoute: typeof AuthenticatedFinancesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/add': {
       id: '/_authenticated/add'
       path: '/add'
@@ -155,6 +186,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAddRoute: typeof AuthenticatedAddRoute
+  AuthenticatedFinancesRoute: typeof AuthenticatedFinancesRoute
   AuthenticatedHouseholdRoute: typeof AuthenticatedHouseholdRoute
   AuthenticatedReceiptsRoute: typeof AuthenticatedReceiptsRoute
   AuthenticatedRecurringRoute: typeof AuthenticatedRecurringRoute
@@ -163,6 +195,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAddRoute: AuthenticatedAddRoute,
+  AuthenticatedFinancesRoute: AuthenticatedFinancesRoute,
   AuthenticatedHouseholdRoute: AuthenticatedHouseholdRoute,
   AuthenticatedReceiptsRoute: AuthenticatedReceiptsRoute,
   AuthenticatedRecurringRoute: AuthenticatedRecurringRoute,
