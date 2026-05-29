@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LayoutDashboard, PlusCircle, Repeat, Receipt, Users, LogOut, Languages } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Repeat, Receipt, Users, LogOut, Languages, Wallet } from "lucide-react";
 import { useI18n, useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -123,16 +123,17 @@ function SignOutButton() {
 
 function BottomNav() {
   const t = useT();
-  const items: { to: "/" | "/add" | "/recurring" | "/receipts" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
+  const items: { to: "/" | "/add" | "/recurring" | "/finances" | "/receipts" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
     { to: "/", label: t("nav.home"), icon: LayoutDashboard, exact: true },
     { to: "/add", label: t("nav.add"), icon: PlusCircle },
     { to: "/recurring", label: t("nav.recurring"), icon: Repeat },
+    { to: "/finances", label: t("nav.finances"), icon: Wallet },
     { to: "/receipts", label: t("nav.receipts"), icon: Receipt },
     { to: "/household", label: t("nav.household"), icon: Users },
   ];
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto grid w-full max-w-xl grid-cols-5">
+      <div className="mx-auto grid w-full max-w-xl grid-cols-6">
         {items.map((it) => (
           <Link
             key={it.to}
