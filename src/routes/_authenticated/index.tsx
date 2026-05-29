@@ -69,6 +69,7 @@ function Dashboard() {
   const selectedMember = selectedUser ? me.data?.members.find((m) => m.user_id === selectedUser) : null;
 
   const pendingRecurring = (recurring.data ?? []).filter((r) => !r.paid);
+  const pendingRecurringTotal = pendingRecurring.reduce((s, r) => s + Number(r.amount), 0);
   const payMut = useMutation({
     mutationFn: () => materializeRecurringForMonth({ data: { month } }),
     onSuccess: () => { qc.invalidateQueries(); toast.success(t("rec.paid")); },
