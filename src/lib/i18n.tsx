@@ -118,6 +118,7 @@ const PL: Dict = {
   "nav.recurring": "Cykliczne",
   "nav.receipts": "Paragony",
   "nav.household": "Dom",
+  "nav.finances": "Finanse",
   "auth.signOut": "Wyloguj",
   "auth.continueGoogle": "Kontynuuj z Google",
   "auth.opening": "Otwieram Google…",
