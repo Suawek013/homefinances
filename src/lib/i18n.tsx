@@ -74,6 +74,8 @@ const EN: Dict = {
   "rec.paid": "Paid",
   "rec.pending": "Pending",
   "rec.none": "No recurring bills.",
+  "rec.totalMonthly": "Total monthly",
+  "rec.totalPending": "Pending total",
   "recpt.title": "Receipts",
   "recpt.none": "No receipts yet.",
   "hh.title": "Household",
