@@ -12,6 +12,7 @@ const EN: Dict = {
   "nav.recurring": "Recurring",
   "nav.receipts": "Receipts",
   "nav.household": "Household",
+  "nav.finances": "Finances",
   "auth.signOut": "Sign out",
   "auth.continueGoogle": "Continue with Google",
   "auth.opening": "Opening Google…",
