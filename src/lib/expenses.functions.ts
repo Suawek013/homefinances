@@ -126,6 +126,13 @@ export const deleteExpense = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const m = await requireMember(context.userId);
+    // If this expense was created from a recurring bill, remove its instance
+    // so it shows as pending again.
+    await supabaseAdmin
+      .from("recurring_instances")
+      .delete()
+      .eq("expense_id", data.id)
+      .eq("household_id", m.household_id);
     const { error } = await supabaseAdmin
       .from("expenses").delete().eq("id", data.id).eq("household_id", m.household_id);
     if (error) throw new Error(error.message);

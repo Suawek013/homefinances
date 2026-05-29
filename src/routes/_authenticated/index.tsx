@@ -10,7 +10,7 @@ import { useMe, memberName, memberColor } from "@/lib/me";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { CategoryDonut } from "@/components/CategoryDonut";
 
@@ -20,7 +20,14 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function Dashboard() {
   const t = useT();
-  const month = monthKey(new Date());
+  const [monthDate, setMonthDate] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const month = monthKey(monthDate);
+  const shiftMonth = (delta: number) =>
+    setMonthDate((d) => new Date(d.getFullYear(), d.getMonth() + delta, 1));
+  const monthLabel = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const me = useMe();
   const cats = useAllCategories();
   const stats = useQuery({ queryKey: ["stats", month], queryFn: () => getMonthlyStats({ data: { month } }) });
@@ -70,6 +77,24 @@ function Dashboard() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-3 py-2">
+        <button
+          onClick={() => shiftMonth(-1)}
+          aria-label={t("dash.prevMonth")}
+          className="rounded-md p-1.5 hover:bg-muted"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <p className="text-sm font-medium capitalize">{monthLabel}</p>
+        <button
+          onClick={() => shiftMonth(1)}
+          aria-label={t("dash.nextMonth")}
+          className="rounded-md p-1.5 hover:bg-muted"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("dash.thisMonth")}</p>
         <p className="mt-1 text-3xl font-semibold">{formatMoney(totalAll)}</p>
