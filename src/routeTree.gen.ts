@@ -17,6 +17,7 @@ import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedHouseholdRouteImport } from './routes/_authenticated/household'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
 import { Route as AuthenticatedFinancesIndexRouteImport } from './routes/_authenticated/finances.index'
+import { Route as AuthenticatedFinancesRecurringRouteImport } from './routes/_authenticated/finances.recurring'
 import { Route as AuthenticatedFinancesAddRouteImport } from './routes/_authenticated/finances.add'
 import { Route as AuthenticatedEditIdRouteImport } from './routes/_authenticated/edit.$id'
 
@@ -60,6 +61,12 @@ const AuthenticatedFinancesIndexRoute =
     path: '/finances/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedFinancesRecurringRoute =
+  AuthenticatedFinancesRecurringRouteImport.update({
+    id: '/finances/recurring',
+    path: '/finances/recurring',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedFinancesAddRoute =
   AuthenticatedFinancesAddRouteImport.update({
     id: '/finances/add',
@@ -81,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/recurring': typeof AuthenticatedRecurringRoute
   '/edit/$id': typeof AuthenticatedEditIdRoute
   '/finances/add': typeof AuthenticatedFinancesAddRoute
+  '/finances/recurring': typeof AuthenticatedFinancesRecurringRoute
   '/finances/': typeof AuthenticatedFinancesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -92,6 +100,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/edit/$id': typeof AuthenticatedEditIdRoute
   '/finances/add': typeof AuthenticatedFinancesAddRoute
+  '/finances/recurring': typeof AuthenticatedFinancesRecurringRoute
   '/finances': typeof AuthenticatedFinancesIndexRoute
 }
 export interface FileRoutesById {
@@ -105,6 +114,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/edit/$id': typeof AuthenticatedEditIdRoute
   '/_authenticated/finances/add': typeof AuthenticatedFinancesAddRoute
+  '/_authenticated/finances/recurring': typeof AuthenticatedFinancesRecurringRoute
   '/_authenticated/finances/': typeof AuthenticatedFinancesIndexRoute
 }
 export interface FileRouteTypes {
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/recurring'
     | '/edit/$id'
     | '/finances/add'
+    | '/finances/recurring'
     | '/finances/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/'
     | '/edit/$id'
     | '/finances/add'
+    | '/finances/recurring'
     | '/finances'
   id:
     | '__root__'
@@ -141,6 +153,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/edit/$id'
     | '/_authenticated/finances/add'
+    | '/_authenticated/finances/recurring'
     | '/_authenticated/finances/'
   fileRoutesById: FileRoutesById
 }
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinancesIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/finances/recurring': {
+      id: '/_authenticated/finances/recurring'
+      path: '/finances/recurring'
+      fullPath: '/finances/recurring'
+      preLoaderRoute: typeof AuthenticatedFinancesRecurringRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/finances/add': {
       id: '/_authenticated/finances/add'
       path: '/finances/add'
@@ -232,6 +252,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedEditIdRoute: typeof AuthenticatedEditIdRoute
   AuthenticatedFinancesAddRoute: typeof AuthenticatedFinancesAddRoute
+  AuthenticatedFinancesRecurringRoute: typeof AuthenticatedFinancesRecurringRoute
   AuthenticatedFinancesIndexRoute: typeof AuthenticatedFinancesIndexRoute
 }
 
@@ -243,6 +264,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedEditIdRoute: AuthenticatedEditIdRoute,
   AuthenticatedFinancesAddRoute: AuthenticatedFinancesAddRoute,
+  AuthenticatedFinancesRecurringRoute: AuthenticatedFinancesRecurringRoute,
   AuthenticatedFinancesIndexRoute: AuthenticatedFinancesIndexRoute,
 }
 
