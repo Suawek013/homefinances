@@ -10,7 +10,7 @@ import { useMe, memberName, memberColor } from "@/lib/me";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { CategoryDonut } from "@/components/CategoryDonut";
 
@@ -205,6 +205,9 @@ function Dashboard() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="tabular-nums">{formatMoney(Number(e.amount))}</span>
+                  <Link to="/edit/$id" params={{ id: e.id }} className="text-muted-foreground hover:text-primary">
+                    <Pencil className="h-4 w-4" />
+                  </Link>
                   <button onClick={() => delMut.mutate(e.id)} className="text-muted-foreground hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </button>
