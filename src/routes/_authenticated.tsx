@@ -174,12 +174,14 @@ function BottomNav({ view }: { view: "finances" | "expenses" }) {
     { to: "/receipts", label: t("nav.receipts"), icon: Receipt },
     { to: "/household", label: t("nav.household"), icon: Users },
   ];
-  const financesItems: { to: "/finances" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
-    { to: "/finances", label: t("fin.title"), icon: Wallet, exact: true },
+  const financesItems: { to: "/finances" | "/finances/add" | "/finances/recurring" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
+    { to: "/finances", label: t("nav.home"), icon: Wallet, exact: true },
+    { to: "/finances/add", label: t("nav.add"), icon: PlusCircle },
+    { to: "/finances/recurring", label: t("nav.recurring"), icon: Repeat },
     { to: "/household", label: t("nav.household"), icon: Users },
   ];
   const items = view === "finances" ? financesItems : expensesItems;
-  const cols = items.length === 2 ? "grid-cols-2" : items.length === 5 ? "grid-cols-5" : "grid-cols-6";
+  const cols = items.length === 4 ? "grid-cols-4" : items.length === 5 ? "grid-cols-5" : "grid-cols-6";
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur">
       <div className={`mx-auto grid w-full max-w-xl ${cols}`}>
