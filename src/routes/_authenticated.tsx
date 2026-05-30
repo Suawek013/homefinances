@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LayoutDashboard, PlusCircle, Repeat, Receipt, Users, LogOut, Languages, Wallet } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Repeat, Receipt, Users, LogOut, Languages, Wallet, Menu, Check } from "lucide-react";
 import { useI18n, useT } from "@/lib/i18n";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -62,25 +70,61 @@ function HouseholdGate() {
 
 function Shell() {
   const t = useT();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const view: "finances" | "expenses" = pathname.startsWith("/finances") ? "finances" : "expenses";
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3">
           <div>
-            <h1 className="text-base font-semibold tracking-tight">{t("app.title")}</h1>
+            <h1 className="text-base font-semibold tracking-tight">
+              {view === "finances" ? t("fin.title") : t("app.title")}
+            </h1>
             <Whoami />
           </div>
           <div className="flex items-center gap-1">
             <LanguageToggle />
             <SignOutButton />
+            <ViewSwitcher view={view} />
           </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-xl flex-1 px-4 py-4">
         <Outlet />
       </main>
-      <BottomNav />
+      <BottomNav view={view} />
     </div>
+  );
+}
+
+function ViewSwitcher({ view }: { view: "finances" | "expenses" }) {
+  const t = useT();
+  const navigate = useNavigate();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+          aria-label="Switch view"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel className="text-xs">{t("view.switch")}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate({ to: "/" })}>
+          <LayoutDashboard className="h-4 w-4" />
+          <span className="flex-1">{t("view.expenses")}</span>
+          {view === "expenses" && <Check className="h-4 w-4 text-primary" />}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/finances" })}>
+          <Wallet className="h-4 w-4" />
+          <span className="flex-1">{t("view.finances")}</span>
+          {view === "finances" && <Check className="h-4 w-4 text-primary" />}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -121,19 +165,24 @@ function SignOutButton() {
   );
 }
 
-function BottomNav() {
+function BottomNav({ view }: { view: "finances" | "expenses" }) {
   const t = useT();
-  const items: { to: "/" | "/add" | "/recurring" | "/finances" | "/receipts" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
+  const expensesItems: { to: "/" | "/add" | "/recurring" | "/receipts" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
     { to: "/", label: t("nav.home"), icon: LayoutDashboard, exact: true },
     { to: "/add", label: t("nav.add"), icon: PlusCircle },
     { to: "/recurring", label: t("nav.recurring"), icon: Repeat },
-    { to: "/finances", label: t("nav.finances"), icon: Wallet },
     { to: "/receipts", label: t("nav.receipts"), icon: Receipt },
     { to: "/household", label: t("nav.household"), icon: Users },
   ];
+  const financesItems: { to: "/finances" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
+    { to: "/finances", label: t("fin.title"), icon: Wallet, exact: true },
+    { to: "/household", label: t("nav.household"), icon: Users },
+  ];
+  const items = view === "finances" ? financesItems : expensesItems;
+  const cols = items.length === 2 ? "grid-cols-2" : items.length === 5 ? "grid-cols-5" : "grid-cols-6";
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto grid w-full max-w-xl grid-cols-6">
+      <div className={`mx-auto grid w-full max-w-xl ${cols}`}>
         {items.map((it) => (
           <Link
             key={it.to}
