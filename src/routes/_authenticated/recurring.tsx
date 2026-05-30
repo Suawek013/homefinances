@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/recurring")({
@@ -30,10 +30,19 @@ function RecurringPage() {
   const [amount, setAmount] = useState("");
   const [day, setDay] = useState(1);
   const [category, setCategory] = useState<string>("subscriptions");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const add = useMutation({
-    mutationFn: () => upsertRecurring({ data: { name, amount: Number(amount), day_of_month: day, category, active: true } }),
-    onSuccess: () => { qc.invalidateQueries(); setName(""); setAmount(""); toast.success(t("common.add")); },
+  const resetForm = () => {
+    setEditingId(null);
+    setName("");
+    setAmount("");
+    setDay(1);
+    setCategory("subscriptions");
+  };
+
+  const save = useMutation({
+    mutationFn: () => upsertRecurring({ data: { id: editingId ?? undefined, name, amount: Number(amount), day_of_month: day, category, active: true } }),
+    onSuccess: () => { qc.invalidateQueries(); resetForm(); toast.success(editingId ? t("common.save") : t("common.add")); },
     onError: (e: Error) => toast.error(e.message),
   });
   const del = useMutation({
@@ -69,7 +78,7 @@ function RecurringPage() {
       )}
 
       <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
-        <h3 className="text-sm font-medium">{t("rec.addNew")}</h3>
+        <h3 className="text-sm font-medium">{editingId ? t("common.edit") : t("rec.addNew")}</h3>
         <div className="space-y-1"><Label>{t("rec.name")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Netflix" /></div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1"><Label>{t("add.amount")}</Label><Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
@@ -81,9 +90,14 @@ function RecurringPage() {
             {cats.list.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         </div>
-        <Button onClick={() => add.mutate()} disabled={!name || !amount || add.isPending} className="w-full">
-          <Plus className="mr-1 h-4 w-4" /> {t("common.add")}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => save.mutate()} disabled={!name || !amount || save.isPending} className="flex-1">
+            <Plus className="mr-1 h-4 w-4" /> {editingId ? t("common.save") : t("common.add")}
+          </Button>
+          {editingId && (
+            <Button variant="ghost" onClick={resetForm}>{t("common.cancel")}</Button>
+          )}
+        </div>
       </div>
 
       <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
@@ -100,6 +114,19 @@ function RecurringPage() {
                 <span className={`rounded-full px-2 py-0.5 text-xs ${st?.paid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                   {st?.paid ? t("rec.paid") : t("rec.pending")}
                 </span>
+                <button
+                  onClick={() => {
+                    setEditingId(r.id);
+                    setName(r.name);
+                    setAmount(String(r.amount));
+                    setDay(r.day_of_month);
+                    setCategory(r.category);
+                    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
                 <button onClick={() => del.mutate(r.id)} className="text-muted-foreground hover:text-destructive">
                   <Trash2 className="h-4 w-4" />
                 </button>
