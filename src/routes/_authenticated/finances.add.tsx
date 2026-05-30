@@ -76,11 +76,11 @@ function FinancesAdd() {
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs">{t("add.amount") ?? "Amount"}</Label>
+            <Label className="text-xs">{t("add.amount")}</Label>
             <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">{t("add.date") ?? "Date"}</Label>
+            <Label className="text-xs">{t("add.date")}</Label>
             <Input type="date" value={occurredOn} onChange={(e) => setOccurredOn(e.target.value)} />
           </div>
         </div>
