@@ -15,8 +15,8 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedRecurringRouteImport } from './routes/_authenticated/recurring'
 import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticated/receipts'
 import { Route as AuthenticatedHouseholdRouteImport } from './routes/_authenticated/household'
-import { Route as AuthenticatedFinancesRouteImport } from './routes/_authenticated/finances'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
+import { Route as AuthenticatedFinancesIndexRouteImport } from './routes/_authenticated/finances.index'
 import { Route as AuthenticatedEditIdRouteImport } from './routes/_authenticated/edit.$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -48,16 +48,17 @@ const AuthenticatedHouseholdRoute = AuthenticatedHouseholdRouteImport.update({
   path: '/household',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedFinancesRoute = AuthenticatedFinancesRouteImport.update({
-  id: '/finances',
-  path: '/finances',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedAddRoute = AuthenticatedAddRouteImport.update({
   id: '/add',
   path: '/add',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFinancesIndexRoute =
+  AuthenticatedFinancesIndexRouteImport.update({
+    id: '/finances/',
+    path: '/finances/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedEditIdRoute = AuthenticatedEditIdRouteImport.update({
   id: '/edit/$id',
   path: '/edit/$id',
@@ -68,33 +69,33 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/add': typeof AuthenticatedAddRoute
-  '/finances': typeof AuthenticatedFinancesRoute
   '/household': typeof AuthenticatedHouseholdRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
   '/recurring': typeof AuthenticatedRecurringRoute
   '/edit/$id': typeof AuthenticatedEditIdRoute
+  '/finances/': typeof AuthenticatedFinancesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/add': typeof AuthenticatedAddRoute
-  '/finances': typeof AuthenticatedFinancesRoute
   '/household': typeof AuthenticatedHouseholdRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
   '/recurring': typeof AuthenticatedRecurringRoute
   '/': typeof AuthenticatedIndexRoute
   '/edit/$id': typeof AuthenticatedEditIdRoute
+  '/finances': typeof AuthenticatedFinancesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/add': typeof AuthenticatedAddRoute
-  '/_authenticated/finances': typeof AuthenticatedFinancesRoute
   '/_authenticated/household': typeof AuthenticatedHouseholdRoute
   '/_authenticated/receipts': typeof AuthenticatedReceiptsRoute
   '/_authenticated/recurring': typeof AuthenticatedRecurringRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/edit/$id': typeof AuthenticatedEditIdRoute
+  '/_authenticated/finances/': typeof AuthenticatedFinancesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -102,32 +103,32 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/add'
-    | '/finances'
     | '/household'
     | '/receipts'
     | '/recurring'
     | '/edit/$id'
+    | '/finances/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/add'
-    | '/finances'
     | '/household'
     | '/receipts'
     | '/recurring'
     | '/'
     | '/edit/$id'
+    | '/finances'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/add'
-    | '/_authenticated/finances'
     | '/_authenticated/household'
     | '/_authenticated/receipts'
     | '/_authenticated/recurring'
     | '/_authenticated/'
     | '/_authenticated/edit/$id'
+    | '/_authenticated/finances/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -179,18 +180,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHouseholdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/finances': {
-      id: '/_authenticated/finances'
-      path: '/finances'
-      fullPath: '/finances'
-      preLoaderRoute: typeof AuthenticatedFinancesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/add': {
       id: '/_authenticated/add'
       path: '/add'
       fullPath: '/add'
       preLoaderRoute: typeof AuthenticatedAddRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/finances/': {
+      id: '/_authenticated/finances/'
+      path: '/finances'
+      fullPath: '/finances/'
+      preLoaderRoute: typeof AuthenticatedFinancesIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/edit/$id': {
@@ -205,22 +206,22 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAddRoute: typeof AuthenticatedAddRoute
-  AuthenticatedFinancesRoute: typeof AuthenticatedFinancesRoute
   AuthenticatedHouseholdRoute: typeof AuthenticatedHouseholdRoute
   AuthenticatedReceiptsRoute: typeof AuthenticatedReceiptsRoute
   AuthenticatedRecurringRoute: typeof AuthenticatedRecurringRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedEditIdRoute: typeof AuthenticatedEditIdRoute
+  AuthenticatedFinancesIndexRoute: typeof AuthenticatedFinancesIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAddRoute: AuthenticatedAddRoute,
-  AuthenticatedFinancesRoute: AuthenticatedFinancesRoute,
   AuthenticatedHouseholdRoute: AuthenticatedHouseholdRoute,
   AuthenticatedReceiptsRoute: AuthenticatedReceiptsRoute,
   AuthenticatedRecurringRoute: AuthenticatedRecurringRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedEditIdRoute: AuthenticatedEditIdRoute,
+  AuthenticatedFinancesIndexRoute: AuthenticatedFinancesIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
