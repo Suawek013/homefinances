@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LayoutDashboard, PlusCircle, Repeat, Receipt, Users, LogOut, Languages, Wallet, Menu, Check } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Repeat, Receipt, Users, LogOut, Languages, Wallet, Menu, Check, Tags } from "lucide-react";
 import { useI18n, useT } from "@/lib/i18n";
 import {
   DropdownMenu,
@@ -123,6 +123,12 @@ function ViewSwitcher({ view }: { view: "finances" | "expenses" }) {
           <span className="flex-1">{t("view.finances")}</span>
           {view === "finances" && <Check className="h-4 w-4 text-primary" />}
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs">{t("nav.settings")}</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => navigate({ to: "/household" })}>
+          <Users className="h-4 w-4" />
+          <span className="flex-1">{t("nav.household")}</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -167,18 +173,18 @@ function SignOutButton() {
 
 function BottomNav({ view }: { view: "finances" | "expenses" }) {
   const t = useT();
-  const expensesItems: { to: "/" | "/add" | "/recurring" | "/receipts" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
+  const expensesItems: { to: "/" | "/add" | "/recurring" | "/receipts" | "/categories"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
     { to: "/", label: t("nav.home"), icon: LayoutDashboard, exact: true },
     { to: "/add", label: t("nav.add"), icon: PlusCircle },
     { to: "/recurring", label: t("nav.recurring"), icon: Repeat },
     { to: "/receipts", label: t("nav.receipts"), icon: Receipt },
-    { to: "/household", label: t("nav.household"), icon: Users },
+    { to: "/categories", label: t("nav.categories"), icon: Tags },
   ];
-  const financesItems: { to: "/finances" | "/finances/add" | "/finances/recurring" | "/household"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
+  const financesItems: { to: "/finances" | "/finances/add" | "/finances/recurring" | "/categories"; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
     { to: "/finances", label: t("nav.home"), icon: Wallet, exact: true },
     { to: "/finances/add", label: t("nav.add"), icon: PlusCircle },
     { to: "/finances/recurring", label: t("nav.recurring"), icon: Repeat },
-    { to: "/household", label: t("nav.household"), icon: Users },
+    { to: "/categories", label: t("nav.categories"), icon: Tags },
   ];
   const items = view === "finances" ? financesItems : expensesItems;
   const cols = items.length === 4 ? "grid-cols-4" : items.length === 5 ? "grid-cols-5" : "grid-cols-6";
