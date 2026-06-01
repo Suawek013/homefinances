@@ -144,6 +144,24 @@ function AddPage() {
             e.target.value = "";
           }} />
       </label>
+      <button
+        onClick={() => {
+          const today = new Date().toISOString().slice(0, 10);
+          const csv = `Amount,Category,Date,Note\n12.50,food,${today},Bakery\n45.00,fuel,${today},Gas station\n9.99,subscriptions,${today},Streaming\n`;
+          const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "expenses-sample.csv";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }}
+        className="w-full text-xs text-muted-foreground underline-offset-2 hover:underline"
+      >
+        ⬇ {t("csv.sample")}
+      </button>
 
       <div className="space-y-1">
         <Label>{t("add.amount")}</Label>
