@@ -129,3 +129,32 @@ export const deleteSavings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const bulkImportSavings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      rows: z.array(
+        z.object({
+          amount: z.number().refine((n) => n !== 0, "Amount cannot be zero"),
+          label: z.string().max(200).default(""),
+          occurred_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          user_id: z.string().uuid().optional(),
+        }),
+      ).min(1).max(500),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const m = await requireMember(context.userId);
+    const payload = data.rows.map((r) => ({
+      household_id: m.household_id,
+      user_id: r.user_id ?? context.userId,
+      amount: r.amount,
+      label: r.label,
+      occurred_on: r.occurred_on,
+    }));
+    const { data: inserted, error } = await supabaseAdmin
+      .from("savings_entries").insert(payload).select("id");
+    if (error) throw new Error(error.message);
+    return { count: inserted?.length ?? 0 };
+  });
