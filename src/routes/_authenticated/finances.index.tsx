@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listIncomes, listSavings, deleteSavings, deleteIncome,
   listInvestmentSnapshots, deleteInvestmentSnapshot,
+  type InvestmentSnapshotRow,
 } from "@/lib/finances.functions";
 import { useMe } from "@/lib/me";
 import { formatMoney, monthKey } from "@/lib/categories";
@@ -68,8 +69,8 @@ function FinancesHome() {
   });
 
   // Latest snapshot per (user_id, label); rows already ordered ascending by date.
-  const latestSnapshots = (() => {
-    const map = new Map<string, typeof snapshots.data extends (infer T)[] | undefined ? T : never>();
+  const latestSnapshots: InvestmentSnapshotRow[] = (() => {
+    const map = new Map<string, InvestmentSnapshotRow>();
     for (const s of snapshots.data ?? []) {
       map.set(`${s.user_id}::${s.label}`, s);
     }
