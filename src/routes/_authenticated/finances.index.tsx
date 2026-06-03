@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  listIncomes, listSavings, deleteSavings, deleteIncome,
+  listIncomes, deleteIncome,
   listInvestmentSnapshots, deleteInvestmentSnapshot,
   type InvestmentSnapshotRow,
 } from "@/lib/finances.functions";
 import { useMe } from "@/lib/me";
 import { formatMoney, monthKey } from "@/lib/categories";
-import { Trash2, ChevronLeft, ChevronRight, Wallet, PiggyBank, TrendingUp } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Wallet, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import {
@@ -35,7 +35,6 @@ function FinancesHome() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const incomes = useQuery({ queryKey: ["incomes"], queryFn: () => listIncomes() });
-  const savings = useQuery({ queryKey: ["savings"], queryFn: () => listSavings() });
   const snapshots = useQuery({
     queryKey: ["investment_snapshots"],
     queryFn: () => listInvestmentSnapshots(),
@@ -45,16 +44,8 @@ function FinancesHome() {
   const monthIncomes = (incomes.data ?? []).filter((i) => i.year_month === month);
   const householdMonthTotal = monthIncomes.reduce((s, i) => s + Number(i.amount), 0);
 
-  const filteredSavings = (savings.data ?? []).filter((s) => !selectedUser || s.user_id === selectedUser);
   const filteredIncomes = (incomes.data ?? []).filter((i) => !selectedUser || i.user_id === selectedUser);
 
-  const userBalance = (uid: string) =>
-    (savings.data ?? []).filter((s) => s.user_id === uid).reduce((acc, s) => acc + Number(s.amount), 0);
-
-  const delSav = useMutation({
-    mutationFn: (id: string) => deleteSavings({ data: { id } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["savings"] }); toast.success(t("common.delete")); },
-  });
   const delInc = useMutation({
     mutationFn: (id: string) => deleteIncome({ data: { id } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["incomes"] }); toast.success(t("common.delete")); },
