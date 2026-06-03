@@ -223,38 +223,6 @@ function FinancesHome() {
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
-        <h2 className="mb-2 text-sm font-medium">
-          <PiggyBank className="mr-1 inline h-4 w-4" /> {t("fin.recent")}
-        </h2>
-        {filteredSavings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("fin.noSavings")}</p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {filteredSavings.slice(0, 20).map((s) => {
-              const mem = members.find((m) => m.user_id === s.user_id);
-              const positive = Number(s.amount) >= 0;
-              return (
-                <li key={s.id} className="flex items-center justify-between py-2 text-sm">
-                  <div>
-                    <p className="font-medium">{s.label || (positive ? t("fin.deposit") : t("fin.withdraw"))}</p>
-                    <p className="text-xs" style={{ color: mem?.color }}>{mem?.display_name ?? "—"} · {s.occurred_on}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`tabular-nums ${positive ? "text-emerald-600" : "text-destructive"}`}>
-                      {positive ? "+" : ""}{formatMoney(Number(s.amount))}
-                    </span>
-                    <button onClick={() => delSav.mutate(s.id)} className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-4">
         <h2 className="mb-2 text-sm font-medium">{t("fin.incomeHistory")}</h2>
         {filteredIncomes.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("fin.noIncome")}</p>
