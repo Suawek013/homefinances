@@ -158,3 +158,64 @@ export const bulkImportSavings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { count: inserted?.length ?? 0 };
   });
+
+export type InvestmentSnapshotRow = {
+  id: string;
+  household_id: string;
+  user_id: string;
+  label: string;
+  value: number;
+  recorded_on: string;
+  created_at: string;
+};
+
+export const listInvestmentSnapshots = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const m = await requireMember(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("investment_snapshots")
+      .select("*")
+      .eq("household_id", m.household_id)
+      .order("recorded_on", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as InvestmentSnapshotRow[];
+  });
+
+export const addInvestmentSnapshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      user_id: z.string().uuid(),
+      label: z.string().max(200).default(""),
+      value: z.number(),
+      recorded_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const m = await requireMember(context.userId);
+    const { error } = await supabaseAdmin.from("investment_snapshots").insert({
+      household_id: m.household_id,
+      user_id: data.user_id,
+      label: data.label,
+      value: data.value,
+      recorded_on: data.recorded_on,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteInvestmentSnapshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const m = await requireMember(context.userId);
+    const { error } = await supabaseAdmin
+      .from("investment_snapshots")
+      .delete()
+      .eq("id", data.id)
+      .eq("household_id", m.household_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
