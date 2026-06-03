@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addSavings, bulkImportSavings } from "@/lib/finances.functions";
+import { addInvestmentSnapshot, listInvestmentSnapshots } from "@/lib/finances.functions";
 import { useMe } from "@/lib/me";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Minus } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/finances/add")({
   component: FinancesAdd,
@@ -28,6 +30,37 @@ function FinancesAdd() {
   const [label, setLabel] = useState("");
   const [occurredOn, setOccurredOn] = useState(() => new Date().toISOString().slice(0, 10));
   const [importing, setImporting] = useState(false);
+
+  // Investment snapshot section
+  const snapshotsQ = useQuery({
+    queryKey: ["investment_snapshots"],
+    queryFn: () => listInvestmentSnapshots(),
+  });
+  const existingLabels = Array.from(
+    new Set((snapshotsQ.data ?? []).map((s) => s.label).filter(Boolean)),
+  );
+  const [invUser, setInvUser] = useState<string>(myUserId);
+  const [invLabel, setInvLabel] = useState("");
+  const [invValue, setInvValue] = useState("");
+  const [invDate, setInvDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  const saveSnapshot = useMutation({
+    mutationFn: () => addInvestmentSnapshot({
+      data: {
+        user_id: invUser || myUserId,
+        label: invLabel.trim(),
+        value: Number(invValue),
+        recorded_on: invDate,
+      },
+    }),
+    onSuccess: () => {
+      toast.success(t("common.add"));
+      qc.invalidateQueries({ queryKey: ["investment_snapshots"] });
+      setInvValue("");
+      navigate({ to: "/finances" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const add = useMutation({
     mutationFn: () => addSavings({
@@ -93,6 +126,62 @@ function FinancesAdd() {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+        <div>
+          <h2 className="text-sm font-medium">{t("fin.investments")}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("fin.investmentHint")}</p>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">{t("fin.forPerson")}</Label>
+          <select
+            value={invUser}
+            onChange={(e) => setInvUser(e.target.value)}
+            className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+          >
+            {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.display_name}</option>)}
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">{t("fin.investmentLabel")}</Label>
+          <Input
+            value={invLabel}
+            onChange={(e) => setInvLabel(e.target.value)}
+            list="inv-labels"
+            placeholder="ETF, savings account…"
+          />
+          <datalist id="inv-labels">
+            {existingLabels.map((l) => <option key={l} value={l} />)}
+          </datalist>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs">{t("fin.investmentValue")}</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={invValue}
+              onChange={(e) => setInvValue(e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">{t("add.date")}</Label>
+            <Input type="date" value={invDate} onChange={(e) => setInvDate(e.target.value)} />
+          </div>
+        </div>
+
+        <Button
+          onClick={() => saveSnapshot.mutate()}
+          disabled={!invValue || !invLabel.trim() || !invUser || saveSnapshot.isPending}
+          className="w-full"
+        >
+          {t("fin.updateValue")}
+        </Button>
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
         <h2 className="text-sm font-medium">{t("fin.savings")}</h2>
 
