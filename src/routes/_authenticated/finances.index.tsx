@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  listIncomes, listSavings, deleteSavings, deleteIncome,
+  listIncomes, deleteIncome,
   listInvestmentSnapshots, deleteInvestmentSnapshot,
   type InvestmentSnapshotRow,
 } from "@/lib/finances.functions";
 import { useMe } from "@/lib/me";
 import { formatMoney, monthKey } from "@/lib/categories";
-import { Trash2, ChevronLeft, ChevronRight, Wallet, PiggyBank, TrendingUp } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Wallet, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import {
@@ -35,7 +35,6 @@ function FinancesHome() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const incomes = useQuery({ queryKey: ["incomes"], queryFn: () => listIncomes() });
-  const savings = useQuery({ queryKey: ["savings"], queryFn: () => listSavings() });
   const snapshots = useQuery({
     queryKey: ["investment_snapshots"],
     queryFn: () => listInvestmentSnapshots(),
@@ -45,16 +44,8 @@ function FinancesHome() {
   const monthIncomes = (incomes.data ?? []).filter((i) => i.year_month === month);
   const householdMonthTotal = monthIncomes.reduce((s, i) => s + Number(i.amount), 0);
 
-  const filteredSavings = (savings.data ?? []).filter((s) => !selectedUser || s.user_id === selectedUser);
   const filteredIncomes = (incomes.data ?? []).filter((i) => !selectedUser || i.user_id === selectedUser);
 
-  const userBalance = (uid: string) =>
-    (savings.data ?? []).filter((s) => s.user_id === uid).reduce((acc, s) => acc + Number(s.amount), 0);
-
-  const delSav = useMutation({
-    mutationFn: (id: string) => deleteSavings({ data: { id } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["savings"] }); toast.success(t("common.delete")); },
-  });
   const delInc = useMutation({
     mutationFn: (id: string) => deleteIncome({ data: { id } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["incomes"] }); toast.success(t("common.delete")); },
@@ -227,38 +218,6 @@ function FinancesHome() {
                   </li>
                 );
               })}
-          </ul>
-        )}
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h2 className="mb-2 text-sm font-medium">
-          <PiggyBank className="mr-1 inline h-4 w-4" /> {t("fin.recent")}
-        </h2>
-        {filteredSavings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("fin.noSavings")}</p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {filteredSavings.slice(0, 20).map((s) => {
-              const mem = members.find((m) => m.user_id === s.user_id);
-              const positive = Number(s.amount) >= 0;
-              return (
-                <li key={s.id} className="flex items-center justify-between py-2 text-sm">
-                  <div>
-                    <p className="font-medium">{s.label || (positive ? t("fin.deposit") : t("fin.withdraw"))}</p>
-                    <p className="text-xs" style={{ color: mem?.color }}>{mem?.display_name ?? "—"} · {s.occurred_on}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`tabular-nums ${positive ? "text-emerald-600" : "text-destructive"}`}>
-                      {positive ? "+" : ""}{formatMoney(Number(s.amount))}
-                    </span>
-                    <button onClick={() => delSav.mutate(s.id)} className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
           </ul>
         )}
       </div>
