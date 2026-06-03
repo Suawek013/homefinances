@@ -453,44 +453,6 @@ export type Database = {
           },
         ]
       }
-      savings_entries: {
-        Row: {
-          amount: number
-          created_at: string
-          household_id: string
-          id: string
-          label: string
-          occurred_on: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          household_id: string
-          id?: string
-          label?: string
-          occurred_on?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          household_id?: string
-          id?: string
-          label?: string
-          occurred_on?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "savings_entries_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
