@@ -44,7 +44,6 @@ function FinancesHome() {
   const members = me.data?.members ?? [];
   const monthIncomes = (incomes.data ?? []).filter((i) => i.year_month === month);
   const householdMonthTotal = monthIncomes.reduce((s, i) => s + Number(i.amount), 0);
-  const householdSavings = (savings.data ?? []).reduce((s, i) => s + Number(i.amount), 0);
 
   const filteredSavings = (savings.data ?? []).filter((s) => !selectedUser || s.user_id === selectedUser);
   const filteredIncomes = (incomes.data ?? []).filter((i) => !selectedUser || i.user_id === selectedUser);
