@@ -251,6 +251,36 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_snapshots: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          label: string
+          recorded_on: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          label?: string
+          recorded_on?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          label?: string
+          recorded_on?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       monthly_incomes: {
         Row: {
           amount: number
