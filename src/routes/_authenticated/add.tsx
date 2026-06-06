@@ -21,10 +21,14 @@ function AddPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const cats = useAllCategories();
+  const me = useQuery({ queryKey: ["me"], queryFn: () => getMyContext() });
+  const members = me.data?.members ?? [];
+  const myId = me.data?.user.id ?? "";
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("food");
   const [spentOn, setSpentOn] = useState(new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
+  const [paidBy, setPaidBy] = useState<string>("");
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -38,6 +42,7 @@ function AddPage() {
           spent_on: spentOn,
           description,
           receipt_id: receiptId,
+          user_id: paidBy || undefined,
         },
       }),
     onSuccess: () => {
@@ -197,6 +202,27 @@ function AddPage() {
         <Label>{t("add.note")}</Label>
         <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
+
+      {members.length > 1 && (
+        <div className="space-y-1">
+          <Label>{t("add.person")}</Label>
+          <div className="flex flex-wrap gap-2">
+            {members.map((m) => {
+              const active = (paidBy || myId) === m.user_id;
+              return (
+                <button
+                  key={m.user_id}
+                  onClick={() => setPaidBy(m.user_id)}
+                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${active ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                >
+                  <span className="h-3 w-3 rounded-full" style={{ background: m.color }} />
+                  <span>{m.user_id === myId ? `${m.display_name} (${t("add.you")})` : m.display_name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button onClick={() => create.mutate()} disabled={!amount || create.isPending} className="flex-1">
