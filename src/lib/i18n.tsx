@@ -89,6 +89,8 @@ const EN: Dict = {
   "add.category": "Category",
   "add.date": "Date",
   "add.note": "Note",
+  "add.person": "Paid by",
+  "add.you": "You",
   "csv.title": "Import CSV",
   "csv.help": "Columns: Amount, Category, Date, Note",
   "csv.choose": "Choose CSV file",
