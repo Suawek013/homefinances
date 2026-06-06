@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getMonthlyStats, listExpenses, deleteExpense } from "@/lib/expenses.functions";
 import { getSettings, updateBudget, listCategoryBudgets } from "@/lib/settings.functions";
-import { getRecurringStatus, materializeRecurringForMonth } from "@/lib/recurring.functions";
+import { getRecurringStatus, materializeRecurringForMonth, payRecurringForMonth } from "@/lib/recurring.functions";
 import { formatMoney, monthKey } from "@/lib/categories";
 import { useAllCategories } from "@/lib/use-categories";
 import { useMe, memberName, memberColor } from "@/lib/me";
@@ -72,6 +72,11 @@ function Dashboard() {
   const pendingRecurringTotal = pendingRecurring.reduce((s, r) => s + Number(r.amount), 0);
   const payMut = useMutation({
     mutationFn: () => materializeRecurringForMonth({ data: { month } }),
+    onSuccess: () => { qc.invalidateQueries(); toast.success(t("rec.paid")); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const payOneMut = useMutation({
+    mutationFn: (id: string) => payRecurringForMonth({ data: { id, month } }),
     onSuccess: () => { qc.invalidateQueries(); toast.success(t("rec.paid")); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -252,7 +257,17 @@ function Dashboard() {
                       <p className="text-xs text-muted-foreground">{t("rec.day")}: {r.day_of_month}</p>
                     </div>
                   </div>
-                  <span className="tabular-nums">{formatMoney(Number(r.amount))}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="tabular-nums">{formatMoney(Number(r.amount))}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => payOneMut.mutate(r.id)}
+                      disabled={payOneMut.isPending}
+                    >
+                      {t("rec.pay")}
+                    </Button>
+                  </div>
                 </li>
               );
             })}
