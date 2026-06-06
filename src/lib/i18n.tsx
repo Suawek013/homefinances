@@ -236,6 +236,8 @@ const PL: Dict = {
   "add.category": "Kategoria",
   "add.date": "Data",
   "add.note": "Notatka",
+  "add.person": "Zapłacił(a)",
+  "add.you": "Ty",
   "csv.title": "Import CSV",
   "csv.help": "Kolumny: Amount, Category, Date, Note",
   "csv.choose": "Wybierz plik CSV",
