@@ -37,7 +37,7 @@ function AddPage() {
     mutationFn: () =>
       createExpense({
         data: {
-          amount: Number(amount),
+          amount: Number(amount.replace(/,/g, ".")),
           category,
           spent_on: spentOn,
           description,
@@ -171,7 +171,7 @@ function AddPage() {
 
       <div className="space-y-1">
         <Label>{t("add.amount")}</Label>
-        <Input type="number" step="0.01" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <Input type="text" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
       </div>
 
       <div className="space-y-1">
