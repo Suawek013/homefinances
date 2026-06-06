@@ -6,6 +6,17 @@ import { requireMember } from "./household.server";
 
 const CATEGORY = z.string().min(1).max(60);
 
+async function assertMemberOfHousehold(userId: string, householdId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("household_members")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("household_id", householdId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Selected person is not a member of this household");
+}
+
 export type ExpenseRow = {
   id: string;
   amount: number;
@@ -54,10 +65,13 @@ export const createExpense = createServerFn({ method: "POST" })
       spent_on: z.string(),
       description: z.string().default(""),
       receipt_id: z.string().uuid().nullable().optional(),
+      user_id: z.string().uuid().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const m = await requireMember(context.userId);
+    const ownerId = data.user_id ?? context.userId;
+    if (ownerId !== context.userId) await assertMemberOfHousehold(ownerId, m.household_id);
     const { data: row, error } = await supabaseAdmin
       .from("expenses")
       .insert({
@@ -65,7 +79,7 @@ export const createExpense = createServerFn({ method: "POST" })
         category: data.category,
         spent_on: data.spent_on,
         description: data.description,
-        user_id: context.userId,
+        user_id: ownerId,
         household_id: m.household_id,
         receipt_id: data.receipt_id ?? null,
       })
@@ -100,19 +114,32 @@ export const updateExpense = createServerFn({ method: "POST" })
       spent_on: z.string(),
       description: z.string().default(""),
       receipt_id: z.string().uuid().nullable().optional(),
+      user_id: z.string().uuid().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const m = await requireMember(context.userId);
+    const patch: {
+      amount: number;
+      category: string;
+      spent_on: string;
+      description: string;
+      receipt_id: string | null;
+      user_id?: string;
+    } = {
+      amount: data.amount,
+      category: data.category,
+      spent_on: data.spent_on,
+      description: data.description,
+      receipt_id: data.receipt_id ?? null,
+    };
+    if (data.user_id) {
+      await assertMemberOfHousehold(data.user_id, m.household_id);
+      patch.user_id = data.user_id;
+    }
     const { data: row, error } = await supabaseAdmin
       .from("expenses")
-      .update({
-        amount: data.amount,
-        category: data.category,
-        spent_on: data.spent_on,
-        description: data.description,
-        receipt_id: data.receipt_id ?? null,
-      })
+      .update(patch)
       .eq("id", data.id)
       .eq("household_id", m.household_id)
       .select("*")
