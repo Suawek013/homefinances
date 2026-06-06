@@ -143,3 +143,42 @@ export const materializeRecurringForMonth = createServerFn({ method: "POST" })
     }
     return { created };
   });
+
+export const payRecurringForMonth = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), month: z.string() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await requireMember(context.userId);
+    const [y, mm] = data.month.split("-").map(Number);
+
+    const { data: r, error } = await supabaseAdmin
+      .from("recurring_expenses").select("*")
+      .eq("id", data.id).eq("household_id", member.household_id).single();
+    if (error) throw new Error(error.message);
+
+    const { data: existing } = await supabaseAdmin
+      .from("recurring_instances").select("expense_id")
+      .eq("household_id", member.household_id)
+      .eq("year_month", data.month)
+      .eq("recurring_id", data.id)
+      .maybeSingle();
+    if (existing) return { ok: true, expense_id: existing.expense_id };
+
+    const lastDay = new Date(y, mm, 0).getDate();
+    const day = Math.min(r.day_of_month, lastDay);
+    const spent_on = `${y}-${String(mm).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const { data: exp, error: e3 } = await supabaseAdmin.from("expenses").insert({
+      amount: r.amount, category: r.category, spent_on,
+      description: r.name, user_id: r.user_id, household_id: member.household_id,
+      recurring_id: r.id,
+    }).select("id").single();
+    if (e3) throw new Error(e3.message);
+    const { error: e4 } = await supabaseAdmin.from("recurring_instances").insert({
+      recurring_id: r.id, year_month: data.month, expense_id: exp!.id,
+      household_id: member.household_id,
+    });
+    if (e4) throw new Error(e4.message);
+    return { ok: true, expense_id: exp!.id };
+  });
