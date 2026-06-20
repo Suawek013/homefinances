@@ -20,6 +20,7 @@ function createSupabaseAdminClient() {
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    db: { schema: 'homefinances' },
     auth: {
       storage: undefined,
       persistSession: false,
